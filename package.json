@@ -3,7 +3,7 @@
   "type": "module",
   "version": "1.2.11",
   "private": true,
-  "description": "A browser extension that adds GIF support to GitHub comments",
+  "description": "A browser extension that adds GIF support to GitLab comments",
   "scripts": {
     "build": "webpack",
     "build:firefox": "webpack && node edit-manifest-for-firefox.cjs",
