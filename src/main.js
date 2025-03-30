@@ -110,6 +110,14 @@ function addToolbarButton(toolbar) {
     return;
   }
 
+  // Skip if we've already added a button to this toolbar
+  if (
+    toolbar.querySelector('.gl-trigger') ||
+    toolbar.classList.contains('gl-has-giphy-button')
+  ) {
+    return;
+  }
+
   // Find the parent form and text area
   let form = toolbar.closest(
     'form, .js-previewable-comment-form, [role="form"]',
@@ -248,6 +256,15 @@ function init() {
   const toolbarSelector = '[aria-label="Editor toolbar"]';
   const existingToolbars = select.all(toolbarSelector);
   debugLog('Found existing toolbars:', existingToolbars.length);
+
+  const commentSectionTestId = '[data-testid="comment-field"]';
+  const commentSections = select.all(commentSectionTestId);
+  console.log('Found comment section toolbars:', commentSections.length);
+
+  for (const commentSection of commentSections) {
+    commentSection.classList.remove('gl-overflow-hidden');
+    commentSection.classList.add('gl-overflow-visible');
+  }
 
   if (existingToolbars.length === 0) {
     debugLog('No toolbars found matching selector:', toolbarSelector);
