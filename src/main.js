@@ -124,11 +124,11 @@ function addToolbarButton(toolbar) {
     return;
   }
 
+  const giphyToolbarItemSelector = '[data-testid="giphy-toolbar-item"]';
+  const giphyToolbarItems = select.all(giphyToolbarItemSelector);
+
   // Skip if we've already added a button to this toolbar
-  if (
-    toolbar.querySelector('.gl-trigger') ||
-    toolbar.classList.contains('gl-has-giphy-button')
-  ) {
+  if (giphyToolbarItems.length > 0) {
     return;
   }
 
@@ -171,11 +171,6 @@ function addToolbarButton(toolbar) {
     return;
   }
 
-  // Skip if we've already added the button to this form
-  if (form.classList.contains('gl-has-giphy-field')) {
-    return;
-  }
-
   // Create the GIF button
   const button = GiphyToolbarItem.cloneNode(true);
 
@@ -191,7 +186,7 @@ function addToolbarButton(toolbar) {
   );
 
   // Add the button at the appropriate position
-  toolbar.append(button);
+  toolbar.before(button);
 
   // Mark the toolbar and form as processed
   toolbar.classList.add('gl-has-giphy-button');
@@ -267,7 +262,7 @@ function init() {
 
   // Add buttons to existing toolbars
   // Use a selector that matches both new and old GitHub styles
-  const toolbarSelector = '[aria-label="Editor toolbar"]';
+  const toolbarSelector = '[aria-label="Go full screen"]';
   const existingToolbars = select.all(toolbarSelector);
   debugLog('Found existing toolbars:', existingToolbars.length);
 
@@ -276,14 +271,15 @@ function init() {
   }
 
   for (const toolbar of existingToolbars) {
-    changeOverflowVisibility(toolbar.parentElement.parentElement);
+    // changeOverflowVisibility(toolbar.parentElement.parentElement);
     addToolbarButton(toolbar);
   }
 
   // Watch for new toolbars
   observe(toolbarSelector, (toolbar) => {
+    console.log('New toolbar detected:', toolbar);
     debugLog('New toolbar detected:', toolbar);
-    changeOverflowVisibility(toolbar.parentElement.parentElement);
+    // changeOverflowVisibility(toolbar.parentElement.parentElement);
     addToolbarButton(toolbar);
   });
 }
@@ -378,7 +374,7 @@ function getFormattedGif(gif) {
   }%)`;
 
   return (
-    <div style={{ width: `${MAX_GIF_WIDTH}px` }}>
+    <div style={{ width: `${MAX_GIF_WIDTH}px`, marginBottom: '10px' }}>
       <img
         src={downsampledUrl}
         height={height}
@@ -392,7 +388,13 @@ function getFormattedGif(gif) {
 
 function showNoResultsFound(resultsContainer) {
   resultsContainer.append(
-    <div class="gl-no-results-found">No GIFs found.</div>,
+    <div
+      aria-live="assertive"
+      data-testid="listbox-no-results-text"
+      class="gl-py-3 gl-pl-7 gl-pr-5 gl-text-base gl-text-subtle"
+    >
+      No GIFs found
+    </div>,
   );
 }
 

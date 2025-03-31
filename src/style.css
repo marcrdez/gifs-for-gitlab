@@ -1,20 +1,28 @@
 /* stylelint-disable declaration-no-important */
-.ghg-giphy-results {
+.gl-giphy-results {
   margin: 10px;
   overflow-y: auto;
-  height: 285px !important;
+  max-height: 285px !important;
 }
 
-.ghg-giphy-results::-webkit-scrollbar {
+.gl-giphy-results::-webkit-scrollbar {
   display: none;
 }
 
-.ghg-giphy-results img {
+.gl-giphy-results img {
   cursor: pointer;
 }
 
-.ghg-gif-selection {
+.gl-gif-selection {
   width: 100%;
+}
+
+.gl-w-75 {
+  width: 37.5rem; /* 600px */
+}
+
+.\!gl-w-75 {
+  max-width: 37.5rem !important;
 }
 
 .ghg-powered-by-giphy {
