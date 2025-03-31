@@ -103,6 +103,20 @@ async function watchGiphyModals(element) {
 }
 
 /**
+ * Changes overflow visibility for comment sections
+ */
+function changeOverflowVisibility(commentSection) {
+  console.log(commentSection);
+
+  if (!commentSection) {
+    return;
+  }
+
+  commentSection.classList.remove('gl-overflow-hidden');
+  commentSection.classList.add('gl-overflow-visible');
+}
+
+/**
  * Adds the GIPHY button to markdown toolbars.
  */
 function addToolbarButton(toolbar) {
@@ -257,26 +271,19 @@ function init() {
   const existingToolbars = select.all(toolbarSelector);
   debugLog('Found existing toolbars:', existingToolbars.length);
 
-  const commentSectionTestId = '[data-testid="comment-field"]';
-  const commentSections = select.all(commentSectionTestId);
-  console.log('Found comment section toolbars:', commentSections.length);
-
-  for (const commentSection of commentSections) {
-    commentSection.classList.remove('gl-overflow-hidden');
-    commentSection.classList.add('gl-overflow-visible');
-  }
-
   if (existingToolbars.length === 0) {
     debugLog('No toolbars found matching selector:', toolbarSelector);
   }
 
   for (const toolbar of existingToolbars) {
+    changeOverflowVisibility(toolbar.parentElement.parentElement);
     addToolbarButton(toolbar);
   }
 
   // Watch for new toolbars
   observe(toolbarSelector, (toolbar) => {
     debugLog('New toolbar detected:', toolbar);
+    changeOverflowVisibility(toolbar.parentElement.parentElement);
     addToolbarButton(toolbar);
   });
 }

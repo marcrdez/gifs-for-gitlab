@@ -23,11 +23,18 @@ export default (
         id="base-dropdown-68"
         data-testid="base-dropdown-menu"
         class="gl-new-dropdown-panel !gl-block gl-absolute"
-        style={{ left: 'auto', right: 0, top: '40px' }}
+        style={{
+          left: 'auto',
+          right: '8px',
+          top: '40px',
+          width: '480px',
+          maxHeight: '410px',
+          zIndex: '99',
+        }}
       >
         <div
           class="gl-new-dropdown-arrow"
-          style={{ left: '106px', top: '-4px', transform: 'rotate(45deg)' }}
+          style={{ left: '432px', top: '-4px', transform: 'rotate(45deg)' }}
         />
         <div class="gl-new-dropdown-inner">
           <div
