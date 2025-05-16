@@ -22,7 +22,7 @@ export default (
       <div
         id="base-dropdown-68"
         data-testid="base-dropdown-menu"
-        class="!gl-w-75 gl-new-dropdown-panel !gl-block gl-absolute"
+        class="!gl-w-75 gl-new-dropdown-panel !gl-block gl-absolute gl-dropdown-menu"
         style={{
           left: 'auto',
           right: '32px',
@@ -30,6 +30,7 @@ export default (
           width: '480px',
           maxHeight: '410px',
           zIndex: '99',
+          visibility: 'hidden',
         }}
       >
         <div
