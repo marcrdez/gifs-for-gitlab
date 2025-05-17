@@ -103,10 +103,32 @@ async function watchGiphyModals(element) {
 }
 
 /**
+ * Changes overflow visibility for comment sections
+ */
+function changeOverflowVisibility(commentSection) {
+  console.log(commentSection);
+
+  if (!commentSection) {
+    return;
+  }
+
+  commentSection.classList.remove('gl-overflow-hidden');
+  commentSection.classList.add('gl-overflow-visible');
+}
+
+/**
  * Adds the GIPHY button to markdown toolbars.
  */
 function addToolbarButton(toolbar) {
   if (!toolbar) {
+    return;
+  }
+
+  const giphyToolbarItemSelector = '[data-testid="giphy-toolbar-item"]';
+  const giphyToolbarItems = select.all(giphyToolbarItemSelector);
+
+  // Skip if we've already added a button to this toolbar
+  if (giphyToolbarItems.length > 0) {
     return;
   }
 
@@ -149,11 +171,6 @@ function addToolbarButton(toolbar) {
     return;
   }
 
-  // Skip if we've already added the button to this form
-  if (form.classList.contains('gl-has-giphy-field')) {
-    return;
-  }
-
   // Create the GIF button
   const button = GiphyToolbarItem.cloneNode(true);
 
@@ -169,7 +186,7 @@ function addToolbarButton(toolbar) {
   );
 
   // Add the button at the appropriate position
-  toolbar.append(button);
+  toolbar.before(button);
 
   // Mark the toolbar and form as processed
   toolbar.classList.add('gl-has-giphy-button');
@@ -222,11 +239,42 @@ function listen() {
     preventFormSubmitOnEnter,
   );
 
-  // The `open` attribute is added after this handler is run,
-  // so the selector is inverted
-  delegate('.gl-trigger:not([open]) > summary', 'click', (event) => {
-    // What comes after <summary> is the dropdown
-    watchGiphyModals(event.delegateTarget);
+  // Manejar el toggle del dropdown cuando se hace clic en el botón
+  delegate('#dropdown-toggle-btn-66', 'click', (event) => {
+    event.preventDefault();
+    event.stopPropagation();
+
+    const button = event.delegateTarget;
+    const dropdown = document.querySelector('#base-dropdown-68');
+
+    if (!dropdown)
+      return;
+
+    const isExpanded = button.getAttribute('aria-expanded') === 'true';
+
+    // Cambiar el estado
+    button.setAttribute('aria-expanded', !isExpanded);
+    dropdown.style.visibility = isExpanded ? 'hidden' : 'visible';
+
+    if (!isExpanded) {
+      // Si estamos mostrando el dropdown, inicializar
+      watchGiphyModals(button);
+    }
+  });
+
+  // Cerrar dropdown al hacer clic fuera
+  document.addEventListener('click', (event) => {
+    const dropdown = document.querySelector('#base-dropdown-68');
+    const button = document.querySelector('#dropdown-toggle-btn-66');
+
+    if (!dropdown || !button)
+      return;
+
+    // Si el clic no fue dentro del dropdown ni en el botón
+    if (!dropdown.contains(event.target) && event.target !== button) {
+      dropdown.style.visibility = 'hidden';
+      button.setAttribute('aria-expanded', 'false');
+    }
   });
 }
 
@@ -245,7 +293,7 @@ function init() {
 
   // Add buttons to existing toolbars
   // Use a selector that matches both new and old GitHub styles
-  const toolbarSelector = '[aria-label="Editor toolbar"]';
+  const toolbarSelector = '[aria-label="Go full screen"]';
   const existingToolbars = select.all(toolbarSelector);
   debugLog('Found existing toolbars:', existingToolbars.length);
 
@@ -259,6 +307,7 @@ function init() {
 
   // Watch for new toolbars
   observe(toolbarSelector, (toolbar) => {
+    console.log('New toolbar detected:', toolbar);
     debugLog('New toolbar detected:', toolbar);
     addToolbarButton(toolbar);
   });
@@ -276,14 +325,29 @@ if (document.readyState === 'loading') {
  * results, and all data attributes.
  */
 function resetGiphyModals() {
-  for (const ghgModal of select.all('.gl-modal')) {
-    const resultContainer = select('.gl-giphy-results', ghgModal);
-    const searchInput = select('.gl-search-input', ghgModal);
-    searchInput.value = '';
-    resultContainer.innerHTML = '';
-    resultContainer.dataset.offset = 0;
-    resultContainer.dataset.searchQuery = '';
-    resultContainer.dataset.hasResults = false;
+  const dropdowns = select.all('#base-dropdown-68');
+  const buttons = select.all('#dropdown-toggle-btn-66');
+
+  for (const dropdown of dropdowns) {
+    const resultContainer = select('.gl-giphy-results', dropdown);
+    const searchInput = select('.gl-search-input', dropdown);
+
+    if (searchInput)
+      searchInput.value = '';
+    if (resultContainer) {
+      resultContainer.innerHTML = '';
+      resultContainer.dataset.offset = 0;
+      resultContainer.dataset.searchQuery = '';
+      resultContainer.dataset.hasResults = false;
+    }
+
+    // Ocultar el dropdown
+    dropdown.style.visibility = 'hidden';
+  }
+
+  // Resetear estados de botones
+  for (const button of buttons) {
+    button.setAttribute('aria-expanded', 'false');
   }
 }
 
@@ -304,9 +368,9 @@ async function performSearch(event) {
   resultsContainer.append(<div>{LoadingIndicator}</div>);
 
   // If there is no search query, get the trending gifs
-  const gifs = await (searchQuery === ''
-    ? giphyClient.getTrending()
-    : giphyClient.search(searchQuery));
+  const gifs = await (searchQuery === '' ?
+      giphyClient.getTrending() :
+      giphyClient.search(searchQuery));
 
   // Clear any previous results
   resultsContainer.innerHTML = '';
@@ -345,7 +409,7 @@ function getFormattedGif(gif) {
 
   const height = Math.floor(
     (gif.images.fixed_width.height * MAX_GIF_WIDTH) /
-      gif.images.fixed_width.width,
+    gif.images.fixed_width.width,
   );
 
   // Generate a random pastel colour to use as an image placeholder
@@ -354,7 +418,7 @@ function getFormattedGif(gif) {
   }%)`;
 
   return (
-    <div style={{ width: `${MAX_GIF_WIDTH}px` }}>
+    <div style={{ width: `${MAX_GIF_WIDTH}px`, marginBottom: '10px' }}>
       <img
         src={downsampledUrl}
         height={height}
@@ -368,7 +432,13 @@ function getFormattedGif(gif) {
 
 function showNoResultsFound(resultsContainer) {
   resultsContainer.append(
-    <div class="gl-no-results-found">No GIFs found.</div>,
+    <div
+      aria-live="assertive"
+      data-testid="listbox-no-results-text"
+      class="gl-py-3 gl-pl-7 gl-pr-5 gl-text-base gl-text-subtle"
+    >
+      No GIFs found
+    </div>,
   );
 }
 
@@ -421,7 +491,8 @@ function insertText(textarea, content) {
  */
 function selectGif(event) {
   const form = event.target.closest('.gl-has-giphy-field');
-  const trigger = select('.gl-trigger', form);
+  const dropdownToggle = select('#dropdown-toggle-btn-66', form);
+  const dropdown = select('#base-dropdown-68', form);
   const gifUrl = event.target.dataset.fullSizeUrl;
 
   // Use the same comprehensive set of selectors we use when finding the textarea
@@ -443,7 +514,12 @@ function selectGif(event) {
   }
 
   // Close the modal
-  trigger.removeAttribute('open');
+  if (dropdownToggle) {
+    dropdownToggle.setAttribute('aria-expanded', 'false');
+  }
+  if (dropdown) {
+    dropdown.style.visibility = 'hidden';
+  }
 
   // Focuses the textarea and inserts the text where the cursor was last
   insertText(textArea, `<img src="${gifUrl}"/>`);
@@ -493,16 +569,16 @@ function handleInfiniteScroll(event) {
 
     searchTimer = setTimeout(async () => {
       try {
-        const offset = resultsContainer.dataset.offset
-          ? Number.parseInt(resultsContainer.dataset.offset, 10) + 50
-          : 50;
+        const offset = resultsContainer.dataset.offset ?
+          Number.parseInt(resultsContainer.dataset.offset, 10) + 50 :
+          50;
         const searchQuery = resultsContainer.dataset.searchQuery;
 
         resultsContainer.dataset.offset = offset;
 
-        const gifs = await (searchQuery
-          ? giphyClient.search(searchQuery, offset)
-          : giphyClient.getTrending(offset));
+        const gifs = await (searchQuery ?
+            giphyClient.search(searchQuery, offset) :
+            giphyClient.getTrending(offset));
 
         if (gifs && gifs.length > 0) {
           appendResults(resultsContainer, gifs);
