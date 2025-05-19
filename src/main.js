@@ -128,7 +128,7 @@ function addToolbarButton(toolbar) {
   const giphyToolbarItems = select.all(giphyToolbarItemSelector, toolbar);
 
   if (giphyToolbarItems.length > 0) {
-    console.log('Giphy toolbar item already added');
+    debugLog('Giphy toolbar item already added');
     return;
   }
 
@@ -248,7 +248,7 @@ function listen() {
     const dropdown = form ? form.querySelector('#base-dropdown-68') : undefined;
 
     if (!dropdown) {
-      console.debug('No dropdown found');
+      debugLog('No dropdown found');
       return;
     }
 
@@ -309,7 +309,6 @@ function init() {
 
   // Watch for new toolbars
   observe(toolbarSelector, (toolbar) => {
-    console.log('New toolbar detected:', toolbar);
     debugLog('New toolbar detected:', toolbar);
     addToolbarButton(toolbar);
   });
