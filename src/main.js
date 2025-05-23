@@ -125,10 +125,10 @@ function addToolbarButton(toolbar) {
   }
 
   const giphyToolbarItemSelector = '[data-testid="giphy-toolbar-item"]';
-  const giphyToolbarItems = select.all(giphyToolbarItemSelector);
+  const giphyToolbarItems = select.all(giphyToolbarItemSelector, toolbar);
 
-  // Skip if we've already added a button to this toolbar
   if (giphyToolbarItems.length > 0) {
+    debugLog('Giphy toolbar item already added');
     return;
   }
 
@@ -186,7 +186,7 @@ function addToolbarButton(toolbar) {
   );
 
   // Add the button at the appropriate position
-  toolbar.before(button);
+  toolbar.insertBefore(button, toolbar.firstChild);
 
   // Mark the toolbar and form as processed
   toolbar.classList.add('gl-has-giphy-button');
@@ -239,41 +239,43 @@ function listen() {
     preventFormSubmitOnEnter,
   );
 
-  // Manejar el toggle del dropdown cuando se hace clic en el botón
   delegate('#dropdown-toggle-btn-66', 'click', (event) => {
     event.preventDefault();
     event.stopPropagation();
 
     const button = event.delegateTarget;
-    const dropdown = document.querySelector('#base-dropdown-68');
+    const form = button.closest('.gl-has-giphy-field');
+    const dropdown = form ? form.querySelector('#base-dropdown-68') : undefined;
 
-    if (!dropdown)
+    if (!dropdown) {
+      debugLog('No dropdown found');
       return;
+    }
 
     const isExpanded = button.getAttribute('aria-expanded') === 'true';
 
-    // Cambiar el estado
     button.setAttribute('aria-expanded', !isExpanded);
     dropdown.style.visibility = isExpanded ? 'hidden' : 'visible';
 
     if (!isExpanded) {
-      // Si estamos mostrando el dropdown, inicializar
       watchGiphyModals(button);
     }
   });
 
-  // Cerrar dropdown al hacer clic fuera
   document.addEventListener('click', (event) => {
-    const dropdown = document.querySelector('#base-dropdown-68');
-    const button = document.querySelector('#dropdown-toggle-btn-66');
+    const activeButtons = select.all('#dropdown-toggle-btn-66[aria-expanded="true"]');
 
-    if (!dropdown || !button)
-      return;
+    for (const button of activeButtons) {
+      const form = button.closest('.gl-has-giphy-field');
+      const dropdown = form ? form.querySelector('#base-dropdown-68') : undefined;
 
-    // Si el clic no fue dentro del dropdown ni en el botón
-    if (!dropdown.contains(event.target) && event.target !== button) {
-      dropdown.style.visibility = 'hidden';
-      button.setAttribute('aria-expanded', 'false');
+      if (!dropdown)
+        continue;
+
+      if (!dropdown.contains(event.target) && event.target !== button) {
+        dropdown.style.visibility = 'hidden';
+        button.setAttribute('aria-expanded', 'false');
+      }
     }
   });
 }
@@ -293,7 +295,7 @@ function init() {
 
   // Add buttons to existing toolbars
   // Use a selector that matches both new and old GitHub styles
-  const toolbarSelector = '[aria-label="Go full screen"]';
+  const toolbarSelector = '[class*="full-screen gl-flex"]';
   const existingToolbars = select.all(toolbarSelector);
   debugLog('Found existing toolbars:', existingToolbars.length);
 
@@ -307,7 +309,6 @@ function init() {
 
   // Watch for new toolbars
   observe(toolbarSelector, (toolbar) => {
-    console.log('New toolbar detected:', toolbar);
     debugLog('New toolbar detected:', toolbar);
     addToolbarButton(toolbar);
   });
@@ -341,11 +342,9 @@ function resetGiphyModals() {
       resultContainer.dataset.hasResults = false;
     }
 
-    // Ocultar el dropdown
     dropdown.style.visibility = 'hidden';
   }
 
-  // Resetear estados de botones
   for (const button of buttons) {
     button.setAttribute('aria-expanded', 'false');
   }
