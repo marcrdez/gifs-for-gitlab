@@ -2,7 +2,7 @@
   "$schema": "https://json.schemastore.org/chrome-manifest",
   "manifest_version": 3,
   "name": "GIFs for GitLab",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "description": "Easily search GIPHY to add a GIF into any GitLab comment box.",
   "action": {
     "default_icon": {
@@ -14,7 +14,7 @@
       "id": "{443bc2e2-8fa9-44ec-828a-fd84c0664f8d}"
     }
   },
-  "permissions": ["contextMenus", "activeTab"],
+  "permissions": ["activeTab"],
   "host_permissions": ["https://api.giphy.com/*"],
   "optional_host_permissions": ["http://*/*", "https://*/*", "<all_urls>"],
   "icons": {
