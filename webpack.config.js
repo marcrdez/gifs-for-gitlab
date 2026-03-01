@@ -1,3 +1,4 @@
+import { readFileSync } from 'node:fs';
 import path from 'node:path';
 import process from 'node:process';
 import { fileURLToPath } from 'node:url';
@@ -6,6 +7,8 @@ import webpack from 'webpack';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
+
+const pkg = JSON.parse(readFileSync(new URL('./package.json', import.meta.url), 'utf8'));
 
 export default {
   mode: 'development',
@@ -28,6 +31,11 @@ export default {
         {
           from: 'src/manifest.json',
           to: 'manifest.json',
+          transform(content) {
+            const manifest = JSON.parse(content.toString());
+            manifest.version = pkg.version;
+            return JSON.stringify(manifest, undefined, 2);
+          },
         },
         {
           from: 'src/images',
